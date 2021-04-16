@@ -1,0 +1,24 @@
+[[stocks]]
+name = "RTX3090"
+url = "https://kakaku.com/pc/videocard/itemlist.aspx?pdf_Spec103=481"
+threshold = 230_000
+
+[[stocks]]
+name = "RTX3080"
+url = "https://kakaku.com/pc/videocard/itemlist.aspx?pdf_Spec103=480"
+threshold = 130_000
+
+[[stocks]]
+name = "RTX3070"
+url = "https://kakaku.com/pc/videocard/itemlist.aspx?pdf_Spec103=479"
+threshold = 100_000
+
+[[stocks]]
+name = "RTX3060Ti"
+url = "https://kakaku.com/pc/videocard/itemlist.aspx?pdf_Spec103=482"
+threshold = 70_000
+
+[[stocks]]
+name = "RTX3060"
+url = "https://kakaku.com/pc/videocard/itemlist.aspx?pdf_Spec103=484"
+threshold = 60_000

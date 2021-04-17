@@ -3,9 +3,15 @@ use std::fs;
 use serde_derive::Deserialize;
 
 #[derive(Debug, Clone, Deserialize)]
+pub struct Site {
+    pub provider: String,
+    pub url: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
 pub struct Stock {
     pub name: String,
-    pub url: String,
+    pub sites: Vec<Site>,
     pub threshold: usize,
 }
 

@@ -14,7 +14,6 @@ use extractor::ToStockResults;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config: Config = Config::from_file("./config.toml");
     let config = Arc::new(config);
-    println!("{:?}", config);
     let query = Query{url: config.stocks[0].sites[0].url.clone()};
     let body = get_html_text(&query).await?;
     extractor::KakakuExtractor.to_stock_results(body);

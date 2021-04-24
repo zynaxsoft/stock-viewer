@@ -55,6 +55,7 @@ impl ToStockResult for KakakuExtractor {
                 },
             })
         }
+        result.sort_by_key(|s| s.price.digit);
         log::debug!("KakakuExtractor Vec<StockResult>\n{:#?}", result);
         StockResult {
             model,

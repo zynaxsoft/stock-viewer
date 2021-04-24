@@ -1,17 +1,3 @@
-use std::fmt;
-
-#[derive(Debug)]
-pub enum MyError {
-    NoGood,
-}
-impl std::error::Error for MyError {}
-
-impl fmt::Display for MyError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "There is an error: {}", self)
-    }
-}
-
 pub struct Query {
     pub url: String,
 }

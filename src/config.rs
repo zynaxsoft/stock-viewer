@@ -24,7 +24,7 @@ impl Config {
     pub fn from_file(file: &str) -> Self {
         let toml_string = fs::read_to_string(file).expect(
             "Error when trying to read anime.toml file.\
-                Make sure it is on the current directory.",
+            Make sure it is on the current directory.",
         );
         toml::from_str(&toml_string).unwrap()
     }

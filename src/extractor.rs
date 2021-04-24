@@ -39,6 +39,7 @@ impl ToStockResults for KakakuExtractor {
                 price,
             })
         }
+        log::debug!("KakakuExtractor Vec<StockResult>\n{:#?}", result);
         result
     }
 }

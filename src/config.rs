@@ -3,6 +3,12 @@ use std::fs;
 use serde_derive::Deserialize;
 
 #[derive(Debug, Clone, Deserialize)]
+pub struct ServerConfig {
+    pub ip: String,
+    pub port: u32,
+}
+
+#[derive(Debug, Clone, Deserialize)]
 pub struct Site {
     pub provider: String,
     pub url: String,
@@ -17,6 +23,7 @@ pub struct Stock {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Config {
+    pub server: ServerConfig,
     pub stocks: Vec<Stock>,
 }
 

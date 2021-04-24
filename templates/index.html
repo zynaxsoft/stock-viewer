@@ -12,9 +12,6 @@ body {
     padding: 10px;
     background-color: rgba(255, 255, 255, 0.9);
 }
-h1 {
-    background-color: rgba(255, 255, 255, 0.9);
-}
 a:link {
   color: rgb(236, 107, 143);
 }
@@ -23,6 +20,11 @@ a:visited {
 }
 h1 {
     color: #bb2f52;
+    background-color: rgba(255, 255, 255, 0.9);
+}
+h2 {
+    color: #999;
+    background-color: rgba(200, 180, 180, 0.9);
 }
 </style>
 </head>
@@ -35,12 +37,15 @@ h1 {
                 <th>Product</th>
                 <th>Price</th>
             </tr>
-            {% for stock in data %}
-            <tr>
-                <td>{{ stock.html_link|safe }}</td>
-                <td>¥{{ stock.price }}</td>
+            {% for stock in index_data %}
+            <tr><td><h2>{{ stock.model }}</h2></td><tr>
+                {% for scrapped in stock.data %}
                 <tr>
-                    {% endfor %}
+                    <td>{{ scrapped.html_link|safe }}</td>
+                    <td>¥{{ scrapped.price.string }}</td>
+                    <tr>
+                {% endfor %}
+            {% endfor %}
         </table>
     </div>
 

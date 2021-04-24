@@ -11,7 +11,7 @@ mod server;
 mod util;
 
 use config::Config;
-use extractor::ToStockResults;
+use extractor::ToStockResult;
 use util::*;
 
 struct AppState {
@@ -24,14 +24,28 @@ fn get_config() -> Arc<Config> {
     Arc::new(config)
 }
 
+async fn get_stock_result(query: Query) -> Result<extractor::StockResult> {
+    let stock_html = get_html_text(&query).await?;
+    log::info!("Successfully acquired html bodies.");
+    Ok(extractor::KakakuExtractor.to_stock_result(query.model, stock_html))
+}
+
 async fn index(data: web::Data<AppState>) -> impl Responder {
     let config = &data.config;
-    let query = Query {
-        url: config.stocks[0].sites[0].url.clone(),
-    };
-    let stock_html = get_html_text(&query).await.unwrap();
-    log::info!("Successfully acquired html bodies.");
-    let stock_results = extractor::KakakuExtractor.to_stock_results(stock_html);
+    let mut stock_results = Vec::new();
+    let mut tasks = Vec::new();
+    for c in &config.stocks {
+        let query = Query {
+            model: c.name.to_string(),
+            url: c.sites[0].url.clone(),
+        };
+        tasks.push(tokio::spawn(async move {
+            get_stock_result(query).await.unwrap()
+        }));
+    }
+    for task in tasks {
+        stock_results.push(task.await.unwrap());
+    }
     server::get_index_html_response(&stock_results)
 }
 

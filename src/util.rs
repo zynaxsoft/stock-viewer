@@ -1,6 +1,7 @@
 use fern::colors::{Color, ColoredLevelConfig};
 
 pub struct Query {
+    pub model: String,
     pub url: String,
 }
 

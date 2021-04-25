@@ -8,9 +8,11 @@ publish = false
 [dependencies]
 anyhow = "1.0.40"
 askama = "0.10.3"
-actix-web = "4.0.0-beta.6"
-actix-rt = "2.2"
-actix-files = "0.2.2"
+actix-files = "0.6.0-beta.4"
+actix-http = "=3.0.0-beta.5"
+actix-rt = "2.2.0"
+actix-service = "=2.0.0-beta.5"
+actix-web = "=4.0.0-beta.5"
 
 tokio = { version = "1", features = ["full"]}
 log = "0.4.14"

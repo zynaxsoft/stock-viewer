@@ -60,7 +60,7 @@ async fn main() -> Result<()> {
                 config: Arc::clone(&config),
             })
             .route("/", web::get().to(index))
-            //.service(Files::new("/images", "./images").show_files_listing())
+            .service(Files::new("/images", "./images").show_files_listing())
     })
     .bind(address)?
     .run()

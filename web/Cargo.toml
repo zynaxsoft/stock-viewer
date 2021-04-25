@@ -1,0 +1,20 @@
+[package]
+name = "web"
+version = "0.1.0"
+authors = ["Tanapol Prucksakorn <tanapol.pr@gmail.com>"]
+edition = "2018"
+publish = false
+
+[dependencies]
+anyhow = "1.0.40"
+askama = "0.10.3"
+actix-web = "4.0.0-beta.6"
+actix-rt = "2.2"
+actix-files = "0.2.2"
+
+tokio = { version = "1", features = ["full"]}
+log = "0.4.14"
+fern = { version = "0.6.0", features = ["colored"] }
+chrono = "0.4.13"
+
+sv_core = { path = "../core" }

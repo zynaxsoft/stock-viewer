@@ -25,7 +25,9 @@ pub fn setup_logger() -> Result<(), fern::InitError> {
             ))
         })
         .level(log::LevelFilter::Warn)
-        .level_for("stock_viewer", log::LevelFilter::Debug)
+        .level_for("sv_core", log::LevelFilter::Debug)
+        .level_for("web", log::LevelFilter::Debug)
+        .level_for("gui", log::LevelFilter::Debug)
         .chain(std::io::stdout())
         .apply()?;
     Ok(())

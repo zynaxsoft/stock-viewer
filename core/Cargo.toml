@@ -1,0 +1,20 @@
+[package]
+name = "sv_core"
+description = "Stock Viewer Core"
+version = "0.1.0"
+authors = ["Tanapol Prucksakorn <tanapol.pr@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+scraper = "0.12.0"
+reqwest = "0.11.3"
+toml = "0.5.6"
+serde_derive = "1.0.114"
+serde = "1.0.114"
+anyhow = "1.0.40"
+
+tokio = { version = "1", features = ["rt"] }
+log = "0.4.14"
+fern = { version = "0.6.0", features = ["colored"] }
+chrono = "0.4.13"
+

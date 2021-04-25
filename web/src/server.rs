@@ -2,7 +2,7 @@ use askama::Template;
 
 use actix_web::HttpResponse;
 
-use crate::extractor::StockResult;
+use sv_core::extractor::StockResult;
 
 #[derive(Template)]
 #[template(path = "index.html")]

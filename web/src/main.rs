@@ -5,14 +5,13 @@ use anyhow::Result;
 use actix_files::Files;
 use actix_web::{web, App, HttpServer, Responder};
 
-mod config;
-mod extractor;
 mod server;
-mod util;
 
-use config::Config;
-use extractor::ToStockResult;
-use util::*;
+use sv_core::{
+    config::Config,
+    extractor::{KakakuExtractor, StockResult, ToStockResult},
+    util::*,
+};
 
 struct AppState {
     config: Arc<Config>,
@@ -24,15 +23,15 @@ fn get_config() -> Arc<Config> {
     Arc::new(config)
 }
 
-async fn get_stock_result(query: Query) -> Result<extractor::StockResult> {
+async fn get_stock_result(query: Query) -> Result<StockResult> {
     let stock_html = get_html_text(&query).await?;
     log::info!("Successfully acquired html bodies.");
-    Ok(extractor::KakakuExtractor.to_stock_result(query.model, stock_html))
+    Ok(KakakuExtractor.to_stock_result(query.model, stock_html))
 }
 
 async fn index(data: web::Data<AppState>) -> impl Responder {
     let config = &data.config;
-    let mut stock_results = Vec::new();
+    let mut stock_results: Vec<StockResult> = Vec::new();
     let mut tasks = Vec::new();
     for c in &config.stocks {
         let query = Query {
@@ -61,7 +60,7 @@ async fn main() -> Result<()> {
                 config: Arc::clone(&config),
             })
             .route("/", web::get().to(index))
-            .service(Files::new("/images", "./images").show_files_listing())
+            //.service(Files::new("/images", "./images").show_files_listing())
     })
     .bind(address)?
     .run()

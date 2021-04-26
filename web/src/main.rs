@@ -9,24 +9,12 @@ mod server;
 
 use sv_core::{
     config::Config,
-    extractor::{KakakuExtractor, StockResult, ToStockResult},
-    util::*,
+    extractor::StockResult,
+    util,
 };
 
 struct AppState {
     config: Arc<Config>,
-}
-
-fn get_config() -> Arc<Config> {
-    let config: Config = Config::from_file("./config.toml");
-    log::info!("config.toml loaded.");
-    Arc::new(config)
-}
-
-async fn get_stock_result(query: Query) -> Result<StockResult> {
-    let stock_html = get_html_text(&query).await?;
-    log::info!("Successfully acquired html bodies.");
-    Ok(KakakuExtractor.to_stock_result(query.model, stock_html))
 }
 
 async fn index(data: web::Data<AppState>) -> impl Responder {
@@ -34,12 +22,12 @@ async fn index(data: web::Data<AppState>) -> impl Responder {
     let mut stock_results: Vec<StockResult> = Vec::new();
     let mut tasks = Vec::new();
     for c in &config.stocks {
-        let query = Query {
+        let query = util::Query {
             model: c.name.to_string(),
             url: c.sites[0].url.clone(),
         };
         tasks.push(tokio::spawn(async move {
-            get_stock_result(query).await.unwrap()
+            util::get_stock_result(query).await.unwrap()
         }));
     }
     for task in tasks {
@@ -50,8 +38,8 @@ async fn index(data: web::Data<AppState>) -> impl Responder {
 
 #[actix_rt::main]
 async fn main() -> Result<()> {
-    setup_logger()?;
-    let config = get_config();
+    util::setup_logger()?;
+    let config = util::get_config();
     let address = format!("{}:{}", config.server.ip, config.server.port);
     log::info!("Serving on {}", address);
     HttpServer::new(move || {

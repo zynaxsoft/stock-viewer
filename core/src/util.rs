@@ -1,4 +1,13 @@
+use std::sync::Arc;
+
+use anyhow::Result;
+
 use fern::colors::{Color, ColoredLevelConfig};
+
+use crate::{
+    config::Config,
+    extractor::{KakakuExtractor, StockResult, ToStockResult},
+};
 
 pub struct Query {
     pub model: String,
@@ -31,4 +40,16 @@ pub fn setup_logger() -> Result<(), fern::InitError> {
         .chain(std::io::stdout())
         .apply()?;
     Ok(())
+}
+
+pub fn get_config() -> Arc<Config> {
+    let config: Config = Config::from_file("./config.toml");
+    log::info!("config.toml loaded.");
+    Arc::new(config)
+}
+
+pub async fn get_stock_result(query: Query) -> Result<StockResult> {
+    let stock_html = get_html_text(&query).await?;
+    log::info!("Successfully acquired html bodies.");
+    Ok(KakakuExtractor.to_stock_result(query.model, stock_html))
 }

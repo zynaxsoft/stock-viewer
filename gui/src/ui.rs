@@ -1,14 +1,45 @@
+#![allow(dead_code, unused_imports)]
+
 use iced::{
     scrollable, Column, Container, Element, Length, Radio, Row, Rule, Sandbox, Scrollable, Space,
     Text,
 };
 
+use sv_core::extractor::StockResult;
+
 use crate::style;
+
+struct StockResultUi {
+    stock_result: Option<StockResult>,
+}
+
+impl Default for StockResultUi {
+    fn default() -> Self {
+        Self { stock_result: None }
+    }
+}
+
+impl StockResultUi {
+    pub fn view(&mut self) -> Element<Message> {
+        let header = Row::new()
+            .push(Text::new("Stock Viewer"))
+            .push(Text::new("Theme Selector"));
+        let scroll_box = Row::new().push(Text::new("Stock goes here"));
+        let main_content = Column::new().push(header).push(scroll_box);
+        Container::new(main_content)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .center_x()
+            .center_y()
+            .into()
+    }
+}
 
 #[derive(Default)]
 pub struct App {
     theme: style::Theme,
     scroll_box: ScrollBox,
+    stock_result_ui: StockResultUi,
 }
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -33,7 +64,7 @@ impl Sandbox for App {
     }
 
     fn view(&mut self) -> Element<Message> {
-        let Self { theme, scroll_box } = self;
+        let Self { theme, scroll_box, .. } = self;
 
         let choose_theme = style::Theme::ALL.iter().fold(
             Column::new().spacing(10).push(Text::new("Choose a theme:")),
@@ -82,8 +113,9 @@ impl Sandbox for App {
             .height(Length::Fill)
             .center_x()
             .center_y()
-            .style(self.theme)
-            .into()
+            .style(self.theme);
+        //.into();
+        self.stock_result_ui.view()
     }
 }
 

@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use anyhow::Result;
 
 use fern::colors::{Color, ColoredLevelConfig};
@@ -42,10 +40,10 @@ pub fn setup_logger() -> Result<(), fern::InitError> {
     Ok(())
 }
 
-pub fn get_config() -> Arc<Config> {
+pub fn get_config() -> Config {
     let config: Config = Config::from_file("./config.toml");
     log::info!("config.toml loaded.");
-    Arc::new(config)
+    config
 }
 
 pub async fn get_stock_result(query: Query) -> Result<StockResult> {

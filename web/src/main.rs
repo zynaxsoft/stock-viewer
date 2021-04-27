@@ -39,7 +39,7 @@ async fn index(data: web::Data<AppState>) -> impl Responder {
 #[actix_rt::main]
 async fn main() -> Result<()> {
     util::setup_logger()?;
-    let config = util::get_config();
+    let config = Arc::new(util::get_config());
     let address = format!("{}:{}", config.server.ip, config.server.port);
     log::info!("Serving on {}", address);
     HttpServer::new(move || {

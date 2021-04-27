@@ -2,7 +2,7 @@
 
 use iced::{
     button, scrollable, Align, Application, Button, Clipboard, Column, Command, Container, Element,
-    HorizontalAlignment, Length, Radio, Row, Rule, Sandbox, Scrollable, Space, Text, Image,
+    HorizontalAlignment, Image, Length, Radio, Row, Rule, Sandbox, Scrollable, Space, Text,
 };
 
 use sv_core::{config::Config, extractor::StockResult, util};
@@ -20,16 +20,27 @@ struct StockPage {
 }
 
 impl StockPage {
-    pub fn view(&self) -> Element<Message> {
-        let model = Text::new(&self.stock_result.model);
+    pub fn view(&self) -> Option<Element<Message>> {
+        if self.stock_result.data.is_empty() {
+            return None;
+        }
+        let model = Text::new(&self.stock_result.model).size(30);
         let mut children = vec![model.into()];
-        for d in &self.stock_result.data {
+        for (i, d) in self.stock_result.data.iter().enumerate() {
+            let product_name = &d.name_html[6..].replace("</span>", "");
+            let mut product_text = Text::new(product_name).width(Length::Units(800));
+            let mut price = Text::new(&d.price.string);
+            if i == 0 {
+                product_text = product_text.color([89.0 / 255.0, 115.0 / 255.0, 91.0 / 255.0]);
+                price = price.color([89.0 / 255.0, 115.0 / 255.0, 91.0 / 255.0]);
+            }
             let stock = Row::new()
-                .push(Text::new(&d.name_html))
-                .push(Text::new(&d.price.string));
+                .push(product_text)
+                .push(Space::with_width(Length::Fill))
+                .push(price);
             children.push(stock.into());
         }
-        Column::with_children(children).into()
+        Some(Column::with_children(children).into())
     }
 }
 
@@ -68,7 +79,11 @@ impl StockResultUi {
         let mut scroll_box = Scrollable::new(&mut self.scroll_state).padding(40);
         if let Some(s_viewers) = self.stock_pages.as_ref() {
             for s in s_viewers {
-                scroll_box = scroll_box.push(s.view());
+                if let Some(content) = s.view() {
+                    scroll_box = scroll_box
+                        .push(content)
+                        .push(Space::with_height(Length::Units(10)));
+                }
             }
         }
         let main_content = Column::new()
@@ -99,7 +114,7 @@ struct Controls {
 
 impl Controls {
     fn view(&mut self) -> Element<Message> {
-        let label = Text::new("Get Data");
+        let label = Text::new("Refresh");
         Button::new(&mut self.refresh_button, label)
             .on_press(Message::RefreshStock(None))
             .into()
@@ -146,7 +161,7 @@ impl Application for App {
             }
             Message::RefreshStock(None) => {
                 let stocks = self.stock_result_ui.config.stocks.clone();
-                iced::Command::perform(refresh(stocks), |s| Message::RefreshStock(Some(s)))
+                Command::perform(refresh(stocks), |s| Message::RefreshStock(Some(s)))
             }
             Message::RefreshStock(Some(s)) => {
                 self.stock_result_ui.update_stock_results(s);

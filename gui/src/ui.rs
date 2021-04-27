@@ -17,8 +17,9 @@ pub enum Message {
 
 struct StockResultUi {
     config: Config,
-    stock_result: Option<StockResult>,
+    stock_results: Option<Vec<StockResult>>,
     controls: Controls,
+    scroll_box: ScrollBox,
 }
 
 impl StockResultUi {
@@ -41,7 +42,11 @@ impl StockResultUi {
             .push(Text::new("Stock Viewer"))
             .push(choose_theme)
             .push(self.controls.view());
-        let scroll_box = Row::new().push(Text::new("Stock goes here"));
+        let mut sample = "Testtttt";
+        if let Some(s) = self.stock_results.as_ref() {
+            sample = &s[0].model;
+        }
+        let scroll_box = Row::new().push(Text::new(sample));
         let main_content = Column::new().push(header).push(scroll_box);
         Container::new(main_content)
             .width(Length::Fill)
@@ -49,6 +54,10 @@ impl StockResultUi {
             .center_x()
             .center_y()
             .into()
+    }
+
+    pub fn update_stock_results(&mut self, stock_results: Vec<StockResult>) {
+        self.stock_results = Some(stock_results);
     }
 }
 
@@ -68,7 +77,6 @@ impl Controls {
 
 pub struct App {
     theme: style::Theme,
-    scroll_box: ScrollBox,
     stock_result_ui: StockResultUi,
 }
 
@@ -81,12 +89,12 @@ impl Application for App {
         let config = util::get_config();
         let stock_result_ui = StockResultUi {
             config,
-            stock_result: None,
+            stock_results: None,
             controls: Default::default(),
+            scroll_box: Default::default(),
         };
         let app = Self {
             theme: Default::default(),
-            scroll_box: Default::default(),
             stock_result_ui,
         };
         (app, Command::none())
@@ -105,6 +113,10 @@ impl Application for App {
             Message::RefreshStock(None) => {
                 let stocks = self.stock_result_ui.config.stocks.clone();
                 iced::Command::perform(refresh(stocks), |s| Message::RefreshStock(Some(s)))
+            }
+            Message::RefreshStock(Some(s)) => {
+                self.stock_result_ui.update_stock_results(s);
+                Command::none()
             }
             _ => Command::none(),
         }
@@ -129,7 +141,6 @@ impl Default for ScrollBox {
 }
 
 pub async fn refresh(stocks: Vec<sv_core::config::Stock>) -> Vec<StockResult> {
-    log::info!("Test");
     let mut stock_results: Vec<StockResult> = Vec::new();
     let mut tasks = Vec::new();
     for c in stocks {

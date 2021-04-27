@@ -15,9 +15,27 @@ pub enum Message {
     RefreshStock(Option<Vec<StockResult>>),
 }
 
+struct StockResultView {
+    stock_result: StockResult,
+}
+
+impl StockResultView {
+    pub fn view(&self) -> Element<Message> {
+        let model = Text::new(&self.stock_result.model);
+        let mut children = vec![model.into()];
+        for d in &self.stock_result.data {
+            let stock = Row::new()
+                .push(Text::new(&d.name_html))
+                .push(Text::new(&d.price.string));
+            children.push(stock.into());
+        }
+        Column::with_children(children).into()
+    }
+}
+
 struct StockResultUi {
     config: Config,
-    stock_results: Option<Vec<StockResult>>,
+    stock_results: Option<Vec<StockResultView>>,
     controls: Controls,
     scroll_box: ScrollBox,
 }
@@ -42,11 +60,13 @@ impl StockResultUi {
             .push(Text::new("Stock Viewer"))
             .push(choose_theme)
             .push(self.controls.view());
-        let mut sample = "Testtttt";
-        if let Some(s) = self.stock_results.as_ref() {
-            sample = &s[0].model;
+        let mut contents = Vec::new();
+        if let Some(s_viewers) = self.stock_results.as_ref() {
+            for s in s_viewers {
+                contents.push(s.view());
+            }
         }
-        let scroll_box = Row::new().push(Text::new(sample));
+        let scroll_box = Column::with_children(contents);
         let main_content = Column::new().push(header).push(scroll_box);
         Container::new(main_content)
             .width(Length::Fill)
@@ -57,7 +77,11 @@ impl StockResultUi {
     }
 
     pub fn update_stock_results(&mut self, stock_results: Vec<StockResult>) {
-        self.stock_results = Some(stock_results);
+        let mut result = Vec::new();
+        for stock_result in stock_results {
+            result.push(StockResultView{stock_result});
+        }
+        self.stock_results = Some(result);
     }
 }
 

@@ -1,8 +1,8 @@
 #![allow(dead_code, unused_imports)]
 
 use iced::{
-    button, scrollable, Application, Button, Clipboard, Column, Command, Container, Element,
-    Length, Radio, Row, Rule, Sandbox, Scrollable, Space, Text,
+    button, scrollable, Align, Application, Button, Clipboard, Column, Command, Container, Element,
+    HorizontalAlignment, Length, Radio, Row, Rule, Sandbox, Scrollable, Space, Text, Image,
 };
 
 use sv_core::{config::Config, extractor::StockResult, util};
@@ -15,11 +15,11 @@ pub enum Message {
     RefreshStock(Option<Vec<StockResult>>),
 }
 
-struct StockResultView {
+struct StockPage {
     stock_result: StockResult,
 }
 
-impl StockResultView {
+impl StockPage {
     pub fn view(&self) -> Element<Message> {
         let model = Text::new(&self.stock_result.model);
         let mut children = vec![model.into()];
@@ -35,39 +35,46 @@ impl StockResultView {
 
 struct StockResultUi {
     config: Config,
-    stock_results: Option<Vec<StockResultView>>,
+    stock_pages: Option<Vec<StockPage>>,
     controls: Controls,
-    scroll_box: ScrollBox,
+    scroll_state: scrollable::State,
 }
 
 impl StockResultUi {
     pub fn view(&mut self, theme: &style::Theme) -> Element<Message> {
-        let choose_theme = style::Theme::ALL.iter().fold(
-            Column::new().spacing(10).push(Text::new("Choose a theme:")),
-            |column, option| {
-                column.push(
-                    Radio::new(
-                        *option,
-                        &format!("{:?}", option),
-                        Some(*theme),
-                        Message::ThemeChanged,
+        let choose_theme =
+            style::Theme::ALL
+                .iter()
+                .fold(Column::new().spacing(10), |column, option| {
+                    column.push(
+                        Radio::new(
+                            *option,
+                            &format!("{:?}", option),
+                            Some(*theme),
+                            Message::ThemeChanged,
+                        )
+                        .style(*theme),
                     )
-                    .style(*theme),
-                )
-            },
-        );
+                });
         let header = Row::new()
-            .push(Text::new("Stock Viewer"))
+            .spacing(20)
+            .padding(10)
+            .push(Text::new("Stock Viewer").color([1.0, 0.2, 0.2]).size(40))
+            .push(Space::with_width(Length::Fill))
+            .push(self.controls.view())
             .push(choose_theme)
-            .push(self.controls.view());
-        let mut contents = Vec::new();
-        if let Some(s_viewers) = self.stock_results.as_ref() {
+            .align_items(Align::Center);
+
+        let mut scroll_box = Scrollable::new(&mut self.scroll_state).padding(40);
+        if let Some(s_viewers) = self.stock_pages.as_ref() {
             for s in s_viewers {
-                contents.push(s.view());
+                scroll_box = scroll_box.push(s.view());
             }
         }
-        let scroll_box = Column::with_children(contents);
-        let main_content = Column::new().push(header).push(scroll_box);
+        let main_content = Column::new()
+            .push(header)
+            .push(scroll_box)
+            .push(Space::with_height(Length::Fill));
         Container::new(main_content)
             .width(Length::Fill)
             .height(Length::Fill)
@@ -79,9 +86,9 @@ impl StockResultUi {
     pub fn update_stock_results(&mut self, stock_results: Vec<StockResult>) {
         let mut result = Vec::new();
         for stock_result in stock_results {
-            result.push(StockResultView{stock_result});
+            result.push(StockPage { stock_result });
         }
-        self.stock_results = Some(result);
+        self.stock_pages = Some(result);
     }
 }
 
@@ -92,7 +99,7 @@ struct Controls {
 
 impl Controls {
     fn view(&mut self) -> Element<Message> {
-        let label = Text::new("Refresh");
+        let label = Text::new("Get Data");
         Button::new(&mut self.refresh_button, label)
             .on_press(Message::RefreshStock(None))
             .into()
@@ -113,15 +120,18 @@ impl Application for App {
         let config = util::get_config();
         let stock_result_ui = StockResultUi {
             config,
-            stock_results: None,
+            stock_pages: None,
             controls: Default::default(),
-            scroll_box: Default::default(),
+            scroll_state: Default::default(),
         };
         let app = Self {
             theme: Default::default(),
             stock_result_ui,
         };
-        (app, Command::none())
+        (
+            app,
+            Command::perform(async {}, |_| Message::RefreshStock(None)),
+        )
     }
 
     fn title(&self) -> String {
@@ -149,18 +159,6 @@ impl Application for App {
     fn view(&mut self) -> Element<Message> {
         let Self { theme, .. } = self;
         self.stock_result_ui.view(&theme)
-    }
-}
-
-pub struct ScrollBox {
-    state: scrollable::State,
-}
-
-impl Default for ScrollBox {
-    fn default() -> Self {
-        Self {
-            state: scrollable::State::new(),
-        }
     }
 }
 

@@ -1,26 +1,24 @@
 #![allow(dead_code, unused_imports)]
 
 use iced::{
-    scrollable, Application, Clipboard, Column, Command, Container, Element, Length, Radio, Row,
-    Rule, Sandbox, Scrollable, Space, Text,
+    button, scrollable, Application, Button, Clipboard, Column, Command, Container, Element,
+    Length, Radio, Row, Rule, Sandbox, Scrollable, Space, Text,
 };
 
 use sv_core::{config::Config, extractor::StockResult, util};
 
 use crate::style;
 
-struct StockResultUi {
-    config: Option<Config>,
-    stock_result: Option<StockResult>,
+#[derive(Debug, Clone)]
+pub enum Message {
+    ThemeChanged(style::Theme),
+    RefreshStock(Option<Vec<StockResult>>),
 }
 
-impl Default for StockResultUi {
-    fn default() -> Self {
-        Self {
-            config: None,
-            stock_result: None,
-        }
-    }
+struct StockResultUi {
+    config: Config,
+    stock_result: Option<StockResult>,
+    controls: Controls,
 }
 
 impl StockResultUi {
@@ -41,7 +39,8 @@ impl StockResultUi {
         );
         let header = Row::new()
             .push(Text::new("Stock Viewer"))
-            .push(choose_theme);
+            .push(choose_theme)
+            .push(self.controls.view());
         let scroll_box = Row::new().push(Text::new("Stock goes here"));
         let main_content = Column::new().push(header).push(scroll_box);
         Container::new(main_content)
@@ -54,16 +53,23 @@ impl StockResultUi {
 }
 
 #[derive(Default)]
+struct Controls {
+    refresh_button: button::State,
+}
+
+impl Controls {
+    fn view(&mut self) -> Element<Message> {
+        let label = Text::new("Refresh");
+        Button::new(&mut self.refresh_button, label)
+            .on_press(Message::RefreshStock(None))
+            .into()
+    }
+}
+
 pub struct App {
     theme: style::Theme,
     scroll_box: ScrollBox,
     stock_result_ui: StockResultUi,
-}
-
-#[derive(Debug, Clone)]
-pub enum Message {
-    ThemeChanged(style::Theme),
-    Refreshed,
 }
 
 impl Application for App {
@@ -72,9 +78,17 @@ impl Application for App {
     type Flags = ();
 
     fn new(_flags: ()) -> (Self, Command<Message>) {
-        let mut app = Self::default();
         let config = util::get_config();
-        app.stock_result_ui.config = Some(config);
+        let stock_result_ui = StockResultUi {
+            config,
+            stock_result: None,
+            controls: Default::default(),
+        };
+        let app = Self {
+            theme: Default::default(),
+            scroll_box: Default::default(),
+            stock_result_ui,
+        };
         (app, Command::none())
     }
 
@@ -86,8 +100,11 @@ impl Application for App {
         match message {
             Message::ThemeChanged(theme) => {
                 self.theme = theme;
-                let stocks = self.stock_result_ui.config.as_ref().unwrap().stocks.clone();
-                iced::Command::perform(refresh(stocks), |_| Message::Refreshed)
+                Command::none()
+            }
+            Message::RefreshStock(None) => {
+                let stocks = self.stock_result_ui.config.stocks.clone();
+                iced::Command::perform(refresh(stocks), |s| Message::RefreshStock(Some(s)))
             }
             _ => Command::none(),
         }
@@ -111,7 +128,7 @@ impl Default for ScrollBox {
     }
 }
 
-pub async fn refresh(stocks: Vec<sv_core::config::Stock>) {
+pub async fn refresh(stocks: Vec<sv_core::config::Stock>) -> Vec<StockResult> {
     log::info!("Test");
     let mut stock_results: Vec<StockResult> = Vec::new();
     let mut tasks = Vec::new();
@@ -127,4 +144,5 @@ pub async fn refresh(stocks: Vec<sv_core::config::Stock>) {
     for task in tasks {
         stock_results.push(task.await.unwrap());
     }
+    stock_results
 }

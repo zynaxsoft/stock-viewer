@@ -1,19 +1,19 @@
 use scraper::{Html, Selector};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Price {
     pub digit: usize,
     pub string: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ScrappedData {
     pub name_html: String,
     pub html_link: String,
     pub price: Price,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct StockResult {
     pub model: String,
     pub data: Vec<ScrappedData>,
